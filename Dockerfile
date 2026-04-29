@@ -1,10 +1,12 @@
 FROM php:8.2-apache
 
-# Instala a extensão para PostgreSQL em vez de MySQL
+# Esta linha é CRUCIAL: instala o suporte ao PostgreSQL
 RUN apt-get update && apt-get install -y libpq-dev && docker-php-ext-install pdo pdo_pgsql
 
-# O restante do seu Dockerfile (copiando os arquivos e ajustando a raiz)
+# Copia os ficheiros
 COPY . /var/www/html/
+
+# Define a pasta frontend como a raiz do site
 ENV APACHE_DOCUMENT_ROOT /var/www/html/frontend
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf

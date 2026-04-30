@@ -54,28 +54,30 @@ if ($metodo === 'GET') {
 }
 
 // --- SALVAR NOVO GASTO (POST) ---
-// --- SALVAR NOVO GASTO (POST) ---
 elseif ($metodo === 'POST') {
     $dados = json_decode(file_get_contents("php://input"), true);
     
+    // 1. Limpeza do valor: remove pontos de milhar e troca vírgula por ponto
+    $valorLimpo = str_replace(['.', ','], ['', '.'], $dados['valor'] ?? '0');
+    $valor = (float) $valorLimpo;
+
     $user_id      = (int)$_SESSION['usuario_id'];
     $descricao    = $dados['descricao'] ?? 'Sem descrição';
-    $valor        = (float)($dados['valor'] ?? 0);
     $categoria_id = (int)($dados['categoria_id'] ?? 1);
     $data         = $dados['data'] ?? date('Y-m-d');
-    $observacao   = $dados['observacao'] ?? ''; // Nova variável
+    $observacao   = $dados['observacao'] ?? '';
 
     try {
-        // Incluímos a coluna observacao no SQL
-        $sql = "INSERT INTO movimentacoes (usuario_id, descricao, valor, categoria_id, data_movimentacao, tipo, observacao) 
-                VALUES (:user_id, :desc, :val, :cat, :data, 'despesa', :obs)";
+        // IMPORTANTE: Não incluímos 'id' nem 'criado_em', o Postgres gera sozinho
+        $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo, observacao) 
+                VALUES (:user_id, :cat, :desc, :val, :data, 'despesa', :obs)";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':user_id' => $user_id,
+            ':cat'     => $categoria_id,
             ':desc'    => $descricao,
             ':val'     => $valor,
-            ':cat'     => $categoria_id,
             ':data'    => $data,
             ':obs'     => $observacao
         ]);
@@ -83,8 +85,9 @@ elseif ($metodo === 'POST') {
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);
     } catch (PDOException $e) {
         http_response_code(500);
-        // Isso vai mostrar no F12 se o erro é em alguma coluna específica
-        echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
+        // Agora você vai ver o erro real no console se o problema for outro
+        echo json_encode(["status" => "erro", "msg" => "Erro no Postgres: " . $e->getMessage()]);
+        exit;
     }
 }
 

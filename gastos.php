@@ -57,34 +57,31 @@ if ($metodo === 'GET') {
 elseif ($metodo === 'POST') {
     $dados = json_decode(file_get_contents("php://input"), true);
     
-    if (!$dados) {
-        echo json_encode(["status" => "erro", "msg" => "Dados inválidos"]);
-        exit;
-    }
-
-    $descricao = $dados['descricao'] ?? '';
-    $valor     = $dados['valor'] ?? 0;
-    $categoria = $dados['categoria_id'] ?? 1;
-    $data      = $dados['data'] ?? date('Y-m-d');
+    // Forçar o valor a ser numérico (Postgres exige isso)
+    $valor = (float) ($dados['valor'] ?? 0);
+    $categoria_id = (int) ($dados['categoria_id'] ?? 1); // Garante que é um número
+    $descricao = $dados['descricao'] ?? 'Sem descrição';
+    $data = $dados['data'] ?? date('Y-m-d');
 
     try {
-        // Adicionamos a coluna usuario_id no INSERT
         $sql = "INSERT INTO movimentacoes (usuario_id, descricao, valor, categoria_id, data_movimentacao, tipo) 
                 VALUES (:user_id, :desc, :val, :cat, :data, 'despesa')";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ':user_id' => $user_id,
+            ':user_id' => (int)$user_id,
             ':desc'    => $descricao,
             ':val'     => $valor,
-            ':cat'     => $categoria,
+            ':cat'     => $categoria_id,
             ':data'    => $data
         ]);
 
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);
     } catch (PDOException $e) {
         http_response_code(500);
+        // Isso vai fazer o erro aparecer no console do navegador para você ler!
         echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
+        exit;
     }
 }
 

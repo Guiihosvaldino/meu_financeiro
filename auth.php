@@ -2,7 +2,7 @@
 
 session_start();
 header("Content-Type: application/json");
-require_once "../config/database.php";
+require_once "database.php";
 
 $dados = json_decode(file_get_contents("php://input"), true);
 $acao = $_GET['acao'] ?? '';

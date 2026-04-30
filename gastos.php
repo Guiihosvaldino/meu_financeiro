@@ -53,13 +53,14 @@ if ($metodo === 'GET') {
     }
 }
 
+
 // --- SALVAR NOVO GASTO (POST) ---
 elseif ($metodo === 'POST') {
     $dados = json_decode(file_get_contents("php://input"), true);
     
-    // 1. Limpeza do valor: remove pontos de milhar e troca vírgula por ponto
-    $valorLimpo = str_replace(['.', ','], ['', '.'], $dados['valor'] ?? '0');
-    $valor = (float) $valorLimpo;
+    // Pegamos o valor exatamente como vem do formulário
+    // O floatval garante que o PHP entenda o ponto como decimal
+    $valor = floatval($dados['valor'] ?? 0);
 
     $user_id      = (int)$_SESSION['usuario_id'];
     $descricao    = $dados['descricao'] ?? 'Sem descrição';
@@ -68,7 +69,6 @@ elseif ($metodo === 'POST') {
     $observacao   = $dados['observacao'] ?? '';
 
     try {
-        // IMPORTANTE: Não incluímos 'id' nem 'criado_em', o Postgres gera sozinho
         $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo, observacao) 
                 VALUES (:user_id, :cat, :desc, :val, :data, 'despesa', :obs)";
         
@@ -77,7 +77,7 @@ elseif ($metodo === 'POST') {
             ':user_id' => $user_id,
             ':cat'     => $categoria_id,
             ':desc'    => $descricao,
-            ':val'     => $valor,
+            ':val'     => $valor, // O PHP enviará 40.00 corretamente
             ':data'    => $data,
             ':obs'     => $observacao
         ]);
@@ -85,8 +85,7 @@ elseif ($metodo === 'POST') {
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);
     } catch (PDOException $e) {
         http_response_code(500);
-        // Agora você vai ver o erro real no console se o problema for outro
-        echo json_encode(["status" => "erro", "msg" => "Erro no Postgres: " . $e->getMessage()]);
+        echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
         exit;
     }
 }

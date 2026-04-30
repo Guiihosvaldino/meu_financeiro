@@ -80,7 +80,7 @@ elseif ($metodo === 'POST') {
     } catch (PDOException $e) {
         http_response_code(500);
         // Isso vai fazer o erro aparecer no console do navegador para você ler!
-        echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
+        echo json_encode(["erro_detalhado" => $e->getMessage()]);
         exit;
     }
 }

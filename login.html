@@ -2,52 +2,68 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <!-- ESSA LINHA ABAIXO É O SEGREDO PARA O CELULAR -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gestão Financeira</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #5176fd79 0%, #5176fd79 100%);
+            /* Corrigi o gradiente para ficar mais visível */
+            background: linear-gradient(135deg, #3b4d8d 0%, #5176fd 100%);
+            margin: 0;
+            padding: 0;
         }
         .card {
             border: none;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            /* Garante que o card não fique "grudado" nas bordas do celular */
+            width: 100%; 
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 25px;
+            padding: 12px; /* Botão maior para facilitar o toque no celular */
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
         h3 {
             color: #333;
+            font-size: 1.5rem;
         }
         label {
             font-weight: bold;
+            margin-bottom: 5px;
+        }
+        /* Ajuste extra para os inputs no mobile */
+        .form-control {
+            padding: 12px;
+            border-radius: 10px;
         }
     </style>
 </head>
-<body class="bg-dark d-flex align-items-center" style="height: 100vh;">
+<body class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-4">
+            <!-- col-11 para telas quase cheias no celular, col-md-4 para o PC -->
+            <div class="col-11 col-sm-8 col-md-6 col-lg-4">
                 <div class="card shadow p-4">
                     <h3 class="text-center mb-4">Acessar Sistema</h3>
                     <form id="formLogin">
                         <div class="mb-3">
                             <label>E-mail</label>
-                            <input type="email" id="email" class="form-control" required>
+                            <input type="email" id="email" class="form-control" placeholder="seu@email.com" required>
                         </div>
                         <div class="mb-3">
                             <label>Senha</label>
-                            <input type="password" id="senha" class="form-control" required>
+                            <input type="password" id="senha" class="form-control" placeholder="Sua senha" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Entrar</button>
                     </form>
                     <hr>
-                    <p class="text-center small">Não tem conta? <a href="cadastro.html">Cadastre-se</a></p>
+                    <p class="text-center small mb-0">Não tem conta? <a href="cadastro.html" class="text-decoration-none">Cadastre-se</a></p>
                 </div>
             </div>
         </div>

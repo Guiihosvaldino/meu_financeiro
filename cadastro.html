@@ -59,7 +59,7 @@
             };
 
             try {
-                const response = await fetch('../backend/api/auth.php?acao=cadastrar', {
+                const response = await fetch('auth.php?acao=cadastrar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)

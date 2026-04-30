@@ -56,7 +56,7 @@
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const dados = { email: document.getElementById('email').value, senha: document.getElementById('senha').value };
-            const res = await fetch('../backend/api/auth.php?acao=login', {
+            const res = await fetch('auth.php?acao=login', {
                 method: 'POST',
                 body: JSON.stringify(dados)
             });

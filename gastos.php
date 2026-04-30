@@ -54,34 +54,37 @@ if ($metodo === 'GET') {
 }
 
 // --- SALVAR NOVO GASTO (POST) ---
+// --- SALVAR NOVO GASTO (POST) ---
 elseif ($metodo === 'POST') {
     $dados = json_decode(file_get_contents("php://input"), true);
     
-    // Forçar o valor a ser numérico (Postgres exige isso)
-    $valor = (float) ($dados['valor'] ?? 0);
-    $categoria_id = (int) ($dados['categoria_id'] ?? 1); // Garante que é um número
-    $descricao = $dados['descricao'] ?? 'Sem descrição';
-    $data = $dados['data'] ?? date('Y-m-d');
+    $user_id      = (int)$_SESSION['usuario_id'];
+    $descricao    = $dados['descricao'] ?? 'Sem descrição';
+    $valor        = (float)($dados['valor'] ?? 0);
+    $categoria_id = (int)($dados['categoria_id'] ?? 1);
+    $data         = $dados['data'] ?? date('Y-m-d');
+    $observacao   = $dados['observacao'] ?? ''; // Nova variável
 
     try {
-        $sql = "INSERT INTO movimentacoes (usuario_id, descricao, valor, categoria_id, data_movimentacao, tipo) 
-                VALUES (:user_id, :desc, :val, :cat, :data, 'despesa')";
+        // Incluímos a coluna observacao no SQL
+        $sql = "INSERT INTO movimentacoes (usuario_id, descricao, valor, categoria_id, data_movimentacao, tipo, observacao) 
+                VALUES (:user_id, :desc, :val, :cat, :data, 'despesa', :obs)";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ':user_id' => (int)$user_id,
+            ':user_id' => $user_id,
             ':desc'    => $descricao,
             ':val'     => $valor,
             ':cat'     => $categoria_id,
-            ':data'    => $data
+            ':data'    => $data,
+            ':obs'     => $observacao
         ]);
 
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);
     } catch (PDOException $e) {
         http_response_code(500);
-        // Isso vai fazer o erro aparecer no console do navegador para você ler!
-        echo json_encode(["erro_detalhado" => $e->getMessage()]);
-        exit;
+        // Isso vai mostrar no F12 se o erro é em alguma coluna específica
+        echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
     }
 }
 

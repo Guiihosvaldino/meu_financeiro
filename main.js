@@ -5,7 +5,7 @@ document.body.style.display = "none";
 
 async function verificarSessao() {
     try {
-        const response = await fetch('../backend/api/auth.php?acao=verificar');
+        const response = await fetch('auth.php?acao=verificar');
         
         // Se o servidor der erro (404, 500), manda pro login
         if (!response.ok) {
@@ -52,10 +52,10 @@ async function carregarGastos(filtros = "") {
         filtros = "";
     }
 
-    console.log("Chamando API no caminho: ../backend/api/gastos.php" + filtros);
+    console.log("Chamando API no caminho: gastos.php" + filtros);
 
     try {
-        const response = await fetch(`../backend/api/gastos.php${filtros}`);
+        const response = await fetch(`gastos.php${filtros}`);
         
         if (!response.ok) {
             throw new Error(`Erro na API: ${response.status}`);
@@ -145,7 +145,7 @@ document.getElementById('formGasto').addEventListener('submit', async (e) => {
         data: new Date().toISOString().split('T')[0]
     };
 
-    const response = await fetch('../backend/api/gastos.php', {
+    const response = await fetch('gastos.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
@@ -177,12 +177,12 @@ function setarPeriodo(tipo) {
 
 async function excluirGasto(id) {
     if (confirm("Deseja excluir?")) {
-        await fetch(`../backend/api/gastos.php?id=${id}`, { method: 'DELETE' });
+        await fetch(`gastos.php?id=${id}`, { method: 'DELETE' });
         carregarGastos();
     }
 }
 async function logout() {
     // Você precisaria criar a ação 'logout' no auth.php que faz session_destroy()
-    await fetch('../backend/api/auth.php?acao=logout');
+    await fetch('auth.php?acao=logout');
     window.location.href = 'login.html';
 }

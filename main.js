@@ -92,8 +92,7 @@ function renderizarTabelaETotais(gastos) {
 
         tabela.innerHTML += `
             <tr>
-                <td>${new Date(gasto.data_movimentacao).toLocaleDateString('pt-BR')}</td>
-                <td>${gasto.descricao}</td>
+                <td>${new Date(gasto.data_movimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>                <td>${gasto.descricao}</td>
                 <td><span class="badge bg-secondary">${gasto.categoria_nome}</span></td>
                 <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
                 <td>

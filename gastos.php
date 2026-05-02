@@ -1,4 +1,16 @@
 <?php
+
+date_default_timezone_set('America/Sao_Paulo');
+
+// No momento de salvar o gasto (POST), use a data do PHP, não a que vem do JS:
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $dados = json_decode(file_get_contents("php://input"), true);
+    
+    // Use isso em vez de confiar no que o JavaScript envia
+    $data_atual = date('Y-m-d'); 
+    
+    // ... restante do seu código de INSERT usando $data_atual
+}
 session_start(); // FUNDAMENTAL: Sem isso o login não funciona
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");

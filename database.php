@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('America/Sao_Paulo');
 // Use a "Internal Database URL" ou o Host que o Render te passou
 $host = 'dpg-d7p8j0dckfvc73b20pcg-a'; 
 $db   = 'meu_financeiro_gy56'; 

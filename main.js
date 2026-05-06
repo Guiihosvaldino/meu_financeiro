@@ -185,3 +185,22 @@ async function logout() {
     await fetch('auth.php?acao=logout');
     window.location.href = 'login.html';
 }
+async function solicitarRecuperacao() {
+    const email = prompt("Digite seu e-mail cadastrado para recuperar a senha:");
+    
+    if (!email) return;
+
+    try {
+        const response = await fetch('backend/api/auth.php?acao=recuperar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+
+        const resultado = await response.json();
+        alert(resultado.mensagem);
+    } catch (erro) {
+        console.error("Erro na recuperação:", erro);
+        alert("Ocorreu um erro ao processar sua solicitação.");
+    }
+}

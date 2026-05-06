@@ -1,5 +1,48 @@
 <?php
 date_default_timezone_set('America/Sao_Paulo');
+
+// --- IMPLEMENTAÇÃO PHPMailer ---
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
+require 'libPHPMailer/Exception.php';
+require 'libPHPMailer/PHPMailer.php';
+require 'libPHPMailer/SMTP.php';
+
+function enviarEmailRecuperacao($emailDestino, $link) {
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com'; // Ou smtp.brevo.com
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'aa7b23001@smtp-brevo.com'; // COLOQUE SEU EMAIL AQUI
+        $mail->Password   = 'xsmtpsib-f7e9b809946896e3f1ab1e9a20d6cc921840f9b187f6381ee6bb343578968af2-nD9tAybTiilBZS8l';    // COLOQUE SUA SENHA DE APP AQUI
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        $mail->setFrom('SEU_EMAIL@GMAIL.COM', 'Meu Financeiro');
+        $mail->addAddress($emailDestino);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Redefinir Senha - Meu Financeiro';
+        $mail->Body    = "
+            <div style='font-family: Arial, sans-serif;'>
+                <h2>Olá!</h2>
+                <p>Você solicitou a redefinição de senha da sua conta.</p>
+                <p>Clique no botão abaixo para criar uma nova senha:</p>
+                <a href='$link' style='background: #5176fd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Redefinir Minha Senha</a>
+                <p>Se não solicitou, ignore este e-mail.</p>
+            </div>";
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+// --- FIM DA IMPLEMENTAÇÃO ---
+
 session_start();
 header("Content-Type: application/json");
 require_once "database.php";
@@ -72,10 +115,18 @@ if ($acao == 'recuperar') {
         $stmt = $pdo->prepare("UPDATE usuarios SET reset_token = ?, reset_expires = ? WHERE email = ?");
         $stmt->execute([$token, $expira, $email]);
 
-        echo json_encode([
-            "mensagem" => "Link gerado! Copie e cole no navegador para testar.",
-            "link" => "http://localhost/seu-projeto/reset-senha.html?token=" . $token
-        ]);
+        // Link ajustado para o seu Render
+        $link = "https://meu-financeiro-s4ud.onrender.com/reset-senha.html?token=" . $token;
+        
+        if (enviarEmailRecuperacao($email, $link)) {
+            echo json_encode(["mensagem" => "Um e-mail formal foi enviado para $email."]);
+        } else {
+            // Caso o e-mail falhe, ainda mostramos o link para você não ficar travado nos testes
+            echo json_encode([
+                "mensagem" => "Erro ao enviar e-mail real, use o link de teste abaixo:",
+                "link" => $link
+            ]);
+        }
     } else {
         echo json_encode(["mensagem" => "E-mail não encontrado."]);
     }

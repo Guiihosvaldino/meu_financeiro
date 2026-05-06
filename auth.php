@@ -6,9 +6,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-require 'libPHPMailer/Exception.php';
-require 'libPHPMailer/PHPMailer.php';
-require 'libPHPMailer/SMTP.php';
+require 'libPHPMailer/src/Exception.php';
+require 'libPHPMailer/src/PHPMailer.php';
+require 'libPHPMailer/src/SMTP.php';
 
 function enviarEmailRecuperacao($emailDestino, $link) {
     $mail = new PHPMailer(true);
@@ -17,8 +17,7 @@ function enviarEmailRecuperacao($emailDestino, $link) {
         $mail->Host       = 'smtp.gmail.com'; // Ou smtp.brevo.com
         $mail->SMTPAuth   = true;
         $mail->Username   = 'aa7b23001@smtp-brevo.com'; // COLOQUE SEU EMAIL AQUI
-        $mail->Password   = 'xsmtpsib-f7e9b809946896e3f1ab1e9a20d6cc921840f9b187f6381ee6bb343578968af2-nD9tAybTiilBZS8l';    // COLOQUE SUA SENHA DE APP AQUI
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+       $mail->Password = getenv('BREVO_KEY');
         $mail->Port       = 587;
 
         $mail->setFrom('SEU_EMAIL@GMAIL.COM', 'Meu Financeiro');

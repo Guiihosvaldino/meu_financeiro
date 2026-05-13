@@ -92,32 +92,32 @@
     });
 
     // NOVA: Função de Recuperação de Senha
-    async function solicitarRecuperacao() {
-        const email = prompt("Digite seu e-mail cadastrado para recuperar a senha:");
+async function solicitarRecuperacao() {
+    const email = prompt("Digite seu e-mail cadastrado para recuperar a senha:");
+    
+    // Se o usuário clicar em cancelar ou deixar vazio, para aqui
+    if (!email) return;
+
+    try {
+        const response = await fetch('auth.php?acao=recuperar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+
+        const resultado = await response.json();
         
-        if (!email) return;
+        // Exibe o alerta com a resposta do PHP
+        alert(resultado.mensagem);
 
-        try {
-            const response = await fetch('auth.php?acao=recuperar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
-            });
-
-            const resultado = await response.json();
-            
-            if (resultado.link) {
-                // No seu teste local/Render, mostramos o link no alert
-                alert(resultado.mensagem + "\n\nLink para testar:\n" + resultado.link);
-                console.log("Link de recuperação:", resultado.link);
-            } else {
-                alert(resultado.mensagem);
-            }
-        } catch (erro) {
-            console.error("Erro na recuperação:", erro);
-            alert("Ocorreu um erro ao processar sua solicitação.");
+        if (resultado.link) {
+            console.log("Link de backup:", resultado.link);
         }
+    } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Ocorreu um erro ao processar. Verifique o console.");
     }
+}
 </script>
 </body>
 </html>

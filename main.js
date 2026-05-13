@@ -86,21 +86,25 @@ function renderizarTabelaETotais(gastos) {
     }
 
     gastos.forEach(gasto => {
-        const valor = parseFloat(gasto.valor);
-        totalGeral += valor;
-        dadosGrafico[gasto.categoria_nome] = (dadosGrafico[gasto.categoria_nome] || 0) + valor;
+    const valor = parseFloat(gasto.valor);
+    totalGeral += valor;
+    dadosGrafico[gasto.categoria_nome] = (dadosGrafico[gasto.categoria_nome] || 0) + valor;
 
-        tabela.innerHTML += `
-            <tr>
-                <td>${new Date(gasto.data_movimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>                <td>${gasto.descricao}</td>
-                <td><span class="badge bg-secondary">${gasto.categoria_nome}</span></td>
-                <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
-                <td>
-                    <button onclick="excluirGasto(${gasto.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
-                </td>
-            </tr>
-        `;
-    });
+    tabela.innerHTML += `
+        <tr>
+            <td>${new Date(gasto.data_movimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+            <td>${gasto.descricao}</td>
+            <td><span class="badge bg-secondary">${gasto.categoria_nome}</span></td>
+            <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
+            <td>
+                <!-- NOVO BOTÃO DE EDITAR -->
+                <button onclick="prepararEdicao(${gasto.id}, '${gasto.descricao}', ${valor})" class="btn btn-sm btn-outline-warning">Editar</button>
+                
+                <button onclick="excluirGasto(${gasto.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
+            </td>
+        </tr>
+    `;
+});
 
     displayTotal.innerText = formatarMoeda(totalGeral);
     desenharGrafico(dadosGrafico);
@@ -202,5 +206,32 @@ async function solicitarRecuperacao() {
     } catch (erro) {
         console.error("Erro na recuperação:", erro);
         alert("Ocorreu um erro ao processar sua solicitação.");
+    }
+}
+async function prepararEdicao(id, descricaoAntiga, valorAntigo) {
+    const novaDescricao = prompt("Editar descrição:", descricaoAntiga);
+    const novoValor = prompt("Editar valor:", valorAntigo);
+
+    if (novaDescricao !== null && novoValor !== null) {
+        try {
+            const response = await fetch('gastos.php', {
+                method: 'PUT', // Usamos PUT para edições (padrão ADS/REST)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: id,
+                    descricao: novaDescricao,
+                    valor: novoValor
+                })
+            });
+
+            if (response.ok) {
+                alert("Gasto atualizado com sucesso!");
+                carregarGastos(); // Recarrega a tabela e o gráfico
+            } else {
+                alert("Erro ao atualizar o gasto.");
+            }
+        } catch (erro) {
+            console.error("Erro na edição:", erro);
+        }
     }
 }

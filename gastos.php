@@ -1,20 +1,10 @@
 <?php
-
+session_start(); 
 date_default_timezone_set('America/Sao_Paulo');
 
-// No momento de salvar o gasto (POST), use a data do PHP, não a que vem do JS:
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $dados = json_decode(file_get_contents("php://input"), true);
-    
-    // Use isso em vez de confiar no que o JavaScript envia
-    $data_atual = date('Y-m-d'); 
-    
-    // ... restante do seu código de INSERT usando $data_atual
-}
-session_start(); // FUNDAMENTAL: Sem isso o login não funciona
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS"); // Adicionado PUT
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once "database.php"; 
@@ -35,7 +25,6 @@ if ($metodo === 'GET') {
         $data_inicio = $_GET['inicio'] ?? null;
         $data_fim = $_GET['fim'] ?? null;
 
-        // Adicionamos: WHERE m.usuario_id = :user_id
         $sql = "SELECT m.*, c.nome as categoria_nome 
                 FROM movimentacoes m 
                 JOIN categorias c ON m.categoria_id = c.id 
@@ -48,7 +37,6 @@ if ($metodo === 'GET') {
         $sql .= " ORDER BY m.data_movimentacao DESC";
         
         $stmt = $pdo->prepare($sql);
-        
         $params = [':user_id' => $user_id];
         if ($data_inicio && $data_fim) {
             $params[':inicio'] = $data_inicio;
@@ -65,20 +53,14 @@ if ($metodo === 'GET') {
     }
 }
 
-
 // --- SALVAR NOVO GASTO (POST) ---
 elseif ($metodo === 'POST') {
     $dados = json_decode(file_get_contents("php://input"), true);
-    
-    // Pegamos o valor exatamente como vem do formulário
-    // O floatval garante que o PHP entenda o ponto como decimal
     $valor = floatval($dados['valor'] ?? 0);
-
-    $user_id      = (int)$_SESSION['usuario_id'];
-    $descricao    = $dados['descricao'] ?? 'Sem descrição';
+    $descricao = $dados['descricao'] ?? 'Sem descrição';
     $categoria_id = (int)($dados['categoria_id'] ?? 1);
-    $data         = $dados['data'] ?? date('Y-m-d');
-    $observacao   = $dados['observacao'] ?? '';
+    $data = $dados['data'] ?? date('Y-m-d');
+    $observacao = $dados['observacao'] ?? '';
 
     try {
         $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo, observacao) 
@@ -89,7 +71,7 @@ elseif ($metodo === 'POST') {
             ':user_id' => $user_id,
             ':cat'     => $categoria_id,
             ':desc'    => $descricao,
-            ':val'     => $valor, // O PHP enviará 40.00 corretamente
+            ':val'     => $valor,
             ':data'    => $data,
             ':obs'     => $observacao
         ]);
@@ -98,7 +80,37 @@ elseif ($metodo === 'POST') {
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
-        exit;
+    }
+}
+
+// --- EDITAR GASTO EXISTENTE (PUT) ---
+elseif ($metodo === 'PUT') {
+    $dados = json_decode(file_get_contents("php://input"), true);
+    
+    $id = (int)($dados['id'] ?? 0);
+    $descricao = $dados['descricao'] ?? '';
+    $valor = floatval($dados['valor'] ?? 0);
+
+    if ($id > 0) {
+        try {
+            // Segurança: só edita se o ID for do usuário logado
+            $sql = "UPDATE movimentacoes 
+                    SET descricao = :desc, valor = :val 
+                    WHERE id = :id AND usuario_id = :user_id";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':desc'    => $descricao,
+                ':val'     => $valor,
+                ':id'      => $id,
+                ':user_id' => $user_id
+            ]);
+
+            echo json_encode(["status" => "sucesso", "msg" => "Gasto atualizado!"]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
+        }
     }
 }
 
@@ -108,7 +120,6 @@ elseif ($metodo === 'DELETE') {
 
     if ($id) {
         try {
-            // Segurança extra: só deleta se o gasto pertencer ao usuário logado
             $stmt = $pdo->prepare("DELETE FROM movimentacoes WHERE id = :id AND usuario_id = :user_id");
             $stmt->execute([':id' => $id, ':user_id' => $user_id]);
             echo json_encode(["status" => "sucesso", "msg" => "Gasto removido!"]);

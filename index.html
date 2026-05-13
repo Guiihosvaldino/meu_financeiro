@@ -112,7 +112,44 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="main.js?v=2"></script>
+    <!-- Modal de Edição -->
+<div class="modal fade" id="modalEdicao" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Gasto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEdicao">
+          <input type="hidden" id="edit_id">
+          <div class="mb-3">
+            <label class="form-label">Data</label>
+            <input type="date" id="edit_data" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <input type="text" id="edit_descricao" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" step="0.01" id="edit_valor" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Categoria</label>
+            <select id="edit_categoria" class="form-select">
+              <option value="1">Insumos/Trabalho</option>
+              <option value="2">Custos Fixos</option>
+              <option value="3">Lazer/Pessoal</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Salvar Alterações</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

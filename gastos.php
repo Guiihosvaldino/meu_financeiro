@@ -87,33 +87,32 @@ elseif ($metodo === 'POST') {
 elseif ($metodo === 'PUT') {
     $dados = json_decode(file_get_contents("php://input"), true);
     
-    $id = (int)($dados['id'] ?? 0);
-    $descricao = $dados['descricao'] ?? '';
-    $valor = floatval($dados['valor'] ?? 0);
+    $id = (int)$dados['id'];
+    $desc = $dados['descricao'];
+    $val = floatval($dados['valor']);
+    $data = $dados['data'];
+    $cat = (int)$dados['categoria_id'];
 
-    if ($id > 0) {
-        try {
-            // Segurança: só edita se o ID for do usuário logado
-            $sql = "UPDATE movimentacoes 
-                    SET descricao = :desc, valor = :val 
-                    WHERE id = :id AND usuario_id = :user_id";
-            
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                ':desc'    => $descricao,
-                ':val'     => $valor,
-                ':id'      => $id,
-                ':user_id' => $user_id
-            ]);
-
-            echo json_encode(["status" => "sucesso", "msg" => "Gasto atualizado!"]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
-        }
+    try {
+        $sql = "UPDATE movimentacoes 
+                SET descricao = :desc, valor = :val, data_movimentacao = :data, categoria_id = :cat 
+                WHERE id = :id AND usuario_id = :user_id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':desc' => $desc,
+            ':val' => $val,
+            ':data' => $data,
+            ':cat' => $cat,
+            ':id' => $id,
+            ':user_id' => $user_id
+        ]);
+        echo json_encode(["status" => "sucesso"]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["erro" => $e->getMessage()]);
     }
 }
-
 // --- DELETAR GASTO (DELETE) ---
 elseif ($metodo === 'DELETE') {
     $id = $_GET['id'] ?? null;

@@ -98,7 +98,7 @@ function renderizarTabelaETotais(gastos) {
             <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
             <td>
                 <!-- NOVO BOTÃO DE EDITAR -->
-                <button onclick="prepararEdicao(${gasto.id}, '${gasto.descricao}', ${valor})" class="btn btn-sm btn-outline-warning">Editar</button>
+                <button onclick='prepararEdicao(${JSON.stringify(gasto)})' class="btn btn-sm btn-outline-warning">Editar</button>
                 
                 <button onclick="excluirGasto(${gasto.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
             </td>
@@ -235,3 +235,41 @@ async function prepararEdicao(id, descricaoAntiga, valorAntigo) {
         }
     }
 }
+function prepararEdicao(gasto) {
+    // Preenche os campos do modal com os dados atuais
+    document.getElementById('edit_id').value = gasto.id;
+    document.getElementById('edit_data').value = gasto.data_movimentacao;
+    document.getElementById('edit_descricao').value = gasto.descricao;
+    document.getElementById('edit_valor').value = gasto.valor;
+    document.getElementById('edit_categoria').value = gasto.categoria_id;
+
+    // Abre o modal do Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('modalEdicao'));
+    modal.show();
+}
+
+// Evento para salvar a edição
+document.getElementById('formEdicao').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const dados = {
+        id: document.getElementById('edit_id').value,
+        data: document.getElementById('edit_data').value,
+        descricao: document.getElementById('edit_descricao').value,
+        valor: document.getElementById('edit_valor').value,
+        categoria_id: document.getElementById('edit_categoria').value
+    };
+
+    const response = await fetch('gastos.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+    });
+
+    if (response.ok) {
+        // Fecha o modal e recarrega
+        bootstrap.Modal.getInstance(document.getElementById('modalEdicao')).hide();
+        carregarGastos();
+        alert("Atualizado com sucesso!");
+    }
+});

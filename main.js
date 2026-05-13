@@ -82,8 +82,8 @@ function renderizarTabelaETotais(gastos) {
     const dadosGrafico = {};
 
     if (gastos.length === 0) {
-        tabela.innerHTML = '<tr><td colspan="5" class="text-center">Nenhum gasto encontrado.</td></tr>';
-    }
+    tabela.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum gasto encontrado.</td></tr>';
+}
 
     gastos.forEach(gasto => {
     const valor = parseFloat(gasto.valor);

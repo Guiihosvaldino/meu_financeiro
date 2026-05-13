@@ -110,11 +110,13 @@ if(formGasto) {
     formGasto.addEventListener('submit', async (e) => {
         e.preventDefault();
         const dados = {
-            descricao: document.getElementById('descricao').value,
-            valor: document.getElementById('valor').value,
-            categoria_id: document.getElementById('categoria_id').value,
-            data: new Date().toISOString().split('T')[0]
-        };
+            id: document.getElementById('edit_id').value,
+            data: document.getElementById('edit_data').value, // O PHP espera 'data'
+            descricao: document.getElementById('edit_descricao').value,
+            valor: document.getElementById('edit_valor').value,
+            categoria_id: document.getElementById('edit_categoria').value
+        };;
+        
         const response = await fetch('gastos.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

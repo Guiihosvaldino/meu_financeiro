@@ -1,66 +1,41 @@
 let meuGrafico;
 
-// Bloqueio visual imediato: esconde o HTML até o PHP confirmar quem é você
+// Bloqueio visual imediato
 document.body.style.display = "none";
 
 async function verificarSessao() {
     try {
         const response = await fetch('auth.php?acao=verificar');
-        
-        // Se o servidor der erro (404, 500), manda pro login
         if (!response.ok) {
             window.location.href = 'login.html';
             return;
         }
-
         const resultado = await response.json();
-
         if (resultado.logado === true) {
-            // SUCESSO: Mostra a página e carrega os dados
             document.body.style.display = "block";
             const saudacao = document.getElementById('nomeUsuario');
             if(saudacao) saudacao.innerText = resultado.nome;
-            
             carregarGastos(); 
         } else {
-            // NÃO LOGADO: Expulsa
             window.location.href = 'login.html';
         }
     } catch (erro) {
         console.error("Erro técnico:", erro);
-        // CASO DE ERRO: Se você estiver no localhost, vamos mostrar a página 
-        // para você conseguir debugar, mas no futuro isso deve redirecionar.
         document.body.style.display = "block"; 
-        alert("Erro ao verificar sessão. Verifique o console (F12).");
     }
 }
 
-// Chame a função imediatamente
 verificarSessao();
 
-// Função para formatar moeda
 const formatarMoeda = (valor) => {
     return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
-// 1. Altere o início do arquivo para garantir que a variável 'filtros' comece vazia
 async function carregarGastos(filtros = "") {
-    
-    // Se por acaso 'filtros' receber um evento (o que causa o [object Event])
-    // nós limpamos ele para evitar o erro 404
-    if (typeof filtros !== 'string') {
-        filtros = "";
-    }
-
-    console.log("Chamando API no caminho: gastos.php" + filtros);
-
+    if (typeof filtros !== 'string') filtros = "";
     try {
         const response = await fetch(`gastos.php${filtros}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
         const gastos = await response.json();
         renderizarTabelaETotais(gastos);
     } catch (erro) {
@@ -68,43 +43,37 @@ async function carregarGastos(filtros = "") {
     }
 }
 
-// 2. Procure onde você chama a função no final do arquivo e garanta que seja assim:
-window.onload = () => carregarGastos("");
-
 function renderizarTabelaETotais(gastos) {
     const tabela = document.getElementById('listaGastos');
     const displayTotal = document.getElementById('totalGastos');
-    
-    if(!tabela) return; // Segurança caso o ID esteja errado
+    if(!tabela) return;
 
     tabela.innerHTML = '';
     let totalGeral = 0;
     const dadosGrafico = {};
 
     if (gastos.length === 0) {
-    tabela.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum gasto encontrado.</td></tr>';
-}
+        tabela.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum gasto encontrado.</td></tr>';
+    }
 
     gastos.forEach(gasto => {
-    const valor = parseFloat(gasto.valor);
-    totalGeral += valor;
-    dadosGrafico[gasto.categoria_nome] = (dadosGrafico[gasto.categoria_nome] || 0) + valor;
+        const valor = parseFloat(gasto.valor);
+        totalGeral += valor;
+        dadosGrafico[gasto.categoria_nome] = (dadosGrafico[gasto.categoria_nome] || 0) + valor;
 
-    tabela.innerHTML += `
-        <tr>
-            <td>${new Date(gasto.data_movimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-            <td>${gasto.descricao}</td>
-            <td><span class="badge bg-secondary">${gasto.categoria_nome}</span></td>
-            <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
-            <td>
-                <!-- NOVO BOTÃO DE EDITAR -->
-                <button onclick='prepararEdicao(${JSON.stringify(gasto)})' class="btn btn-sm btn-outline-warning">Editar</button>
-                
-                <button onclick="excluirGasto(${gasto.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
-            </td>
-        </tr>
-    `;
-});
+        tabela.innerHTML += `
+            <tr>
+                <td>${new Date(gasto.data_movimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                <td>${gasto.descricao}</td>
+                <td><span class="badge bg-secondary">${gasto.categoria_nome}</span></td>
+                <td class="text-danger fw-bold">${formatarMoeda(valor)}</td>
+                <td>
+                    <button onclick='prepararEdicao(${JSON.stringify(gasto)})' class="btn btn-sm btn-outline-warning">Editar</button>
+                    <button onclick="excluirGasto(${gasto.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
+                </td>
+            </tr>
+        `;
+    });
 
     displayTotal.innerText = formatarMoeda(totalGeral);
     desenharGrafico(dadosGrafico);
@@ -112,9 +81,8 @@ function renderizarTabelaETotais(gastos) {
 
 function desenharGrafico(dados) {
     const canvas = document.getElementById('graficoGastos');
-    if(!canvas) return;
+    if(!canvas || typeof Chart === 'undefined') return;
     const ctx = canvas.getContext('2d');
-    
     if (meuGrafico) meuGrafico.destroy();
 
     meuGrafico = new Chart(ctx, {
@@ -136,46 +104,69 @@ function desenharGrafico(dados) {
     });
 }
 
-// Evento do Formulário
-document.getElementById('formGasto').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    console.log("Enviando novo gasto...");
-
-    const dados = {
-        descricao: document.getElementById('descricao').value,
-        valor: document.getElementById('valor').value,
-        categoria_id: document.getElementById('categoria_id').value,
-        data: new Date().toISOString().split('T')[0]
-    };
-
-    const response = await fetch('gastos.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados)
+// Evento do Formulário de Cadastro
+const formGasto = document.getElementById('formGasto');
+if(formGasto) {
+    formGasto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const dados = {
+            descricao: document.getElementById('descricao').value,
+            valor: document.getElementById('valor').value,
+            categoria_id: document.getElementById('categoria_id').value,
+            data: new Date().toISOString().split('T')[0]
+        };
+        const response = await fetch('gastos.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        if (response.ok) {
+            formGasto.reset();
+            carregarGastos();
+        }
     });
-
-    if (response.ok) {
-        document.getElementById('formGasto').reset();
-        carregarGastos();
-    }
-});
-
-// Funções de Filtro
-function carregarGastosComFiltro() {
-    const inicio = document.getElementById('filtro_inicio').value;
-    const fim = document.getElementById('filtro_fim').value;
-    if (inicio && fim) carregarGastos(`?inicio=${inicio}&fim=${fim}`);
 }
 
-function setarPeriodo(tipo) {
-    const hoje = new Date();
-    let inicio = new Date();
-    if (tipo === 'semana') inicio.setDate(hoje.getDate() - hoje.getDay());
-    else if (tipo === 'mes') inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+// Funções de Edição (MODAL)
+function prepararEdicao(gasto) {
+    document.getElementById('edit_id').value = gasto.id;
+    document.getElementById('edit_data').value = gasto.data_movimentacao;
+    document.getElementById('edit_descricao').value = gasto.descricao;
+    document.getElementById('edit_valor').value = gasto.valor;
+    document.getElementById('edit_categoria').value = gasto.categoria_id;
 
-    document.getElementById('filtro_inicio').value = inicio.toISOString().split('T')[0];
-    document.getElementById('filtro_fim').value = hoje.toISOString().split('T')[0];
-    carregarGastosComFiltro();
+    const modalEl = document.getElementById('modalEdicao');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+// Evento para salvar a edição
+const formEdicao = document.getElementById('formEdicao');
+if(formEdicao) {
+    formEdicao.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const dados = {
+            id: document.getElementById('edit_id').value,
+            data: document.getElementById('edit_data').value,
+            descricao: document.getElementById('edit_descricao').value,
+            valor: document.getElementById('edit_valor').value,
+            categoria_id: document.getElementById('edit_categoria').value
+        };
+
+        const response = await fetch('gastos.php', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+            const modalEl = document.getElementById('modalEdicao');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if(modalInstance) modalInstance.hide();
+            carregarGastos();
+            alert("Atualizado com sucesso!");
+        }
+    });
 }
 
 async function excluirGasto(id) {
@@ -184,92 +175,14 @@ async function excluirGasto(id) {
         carregarGastos();
     }
 }
+
+function carregarGastosComFiltro() {
+    const inicio = document.getElementById('filtro_inicio').value;
+    const fim = document.getElementById('filtro_fim').value;
+    if (inicio && fim) carregarGastos(`?inicio=${inicio}&fim=${fim}`);
+}
+
 async function logout() {
-    // Você precisaria criar a ação 'logout' no auth.php que faz session_destroy()
     await fetch('auth.php?acao=logout');
     window.location.href = 'login.html';
 }
-async function solicitarRecuperacao() {
-    const email = prompt("Digite seu e-mail cadastrado para recuperar a senha:");
-    
-    if (!email) return;
-
-    try {
-        const response = await fetch('backend/api/auth.php?acao=recuperar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-
-        const resultado = await response.json();
-        alert(resultado.mensagem);
-    } catch (erro) {
-        console.error("Erro na recuperação:", erro);
-        alert("Ocorreu um erro ao processar sua solicitação.");
-    }
-}
-async function prepararEdicao(id, descricaoAntiga, valorAntigo) {
-    const novaDescricao = prompt("Editar descrição:", descricaoAntiga);
-    const novoValor = prompt("Editar valor:", valorAntigo);
-
-    if (novaDescricao !== null && novoValor !== null) {
-        try {
-            const response = await fetch('gastos.php', {
-                method: 'PUT', // Usamos PUT para edições (padrão ADS/REST)
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: id,
-                    descricao: novaDescricao,
-                    valor: novoValor
-                })
-            });
-
-            if (response.ok) {
-                alert("Gasto atualizado com sucesso!");
-                carregarGastos(); // Recarrega a tabela e o gráfico
-            } else {
-                alert("Erro ao atualizar o gasto.");
-            }
-        } catch (erro) {
-            console.error("Erro na edição:", erro);
-        }
-    }
-}
-function prepararEdicao(gasto) {
-    // Preenche os campos do modal com os dados atuais
-    document.getElementById('edit_id').value = gasto.id;
-    document.getElementById('edit_data').value = gasto.data_movimentacao;
-    document.getElementById('edit_descricao').value = gasto.descricao;
-    document.getElementById('edit_valor').value = gasto.valor;
-    document.getElementById('edit_categoria').value = gasto.categoria_id;
-
-    // Abre o modal do Bootstrap
-    const modal = new bootstrap.Modal(document.getElementById('modalEdicao'));
-    modal.show();
-}
-
-// Evento para salvar a edição
-document.getElementById('formEdicao').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const dados = {
-        id: document.getElementById('edit_id').value,
-        data: document.getElementById('edit_data').value,
-        descricao: document.getElementById('edit_descricao').value,
-        valor: document.getElementById('edit_valor').value,
-        categoria_id: document.getElementById('edit_categoria').value
-    };
-
-    const response = await fetch('gastos.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados)
-    });
-
-    if (response.ok) {
-        // Fecha o modal e recarrega
-        bootstrap.Modal.getInstance(document.getElementById('modalEdicao')).hide();
-        carregarGastos();
-        alert("Atualizado com sucesso!");
-    }
-});

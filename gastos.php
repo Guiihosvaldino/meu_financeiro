@@ -60,20 +60,21 @@ elseif ($metodo === 'POST') {
     $descricao = $dados['descricao'] ?? 'Sem descrição';
     $categoria_id = (int)($dados['categoria_id'] ?? 1);
     $data = $dados['data'] ?? date('Y-m-d');
-    $observacao = $dados['observacao'] ?? '';
 
     try {
-        $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo, observacao) 
-                VALUES (:user_id, :cat, :desc, :val, :data, 'despesa', :obs)";
+        // 1. REMOVEMOS 'observacao' das colunas e ':obs' dos VALUES
+        $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo) 
+                VALUES (:user_id, :cat, :desc, :val, :data, 'despesa')";
         
         $stmt = $pdo->prepare($sql);
+        
+        // 2. O execute envia apenas o que foi declarado no SQL acima
         $stmt->execute([
             ':user_id' => $user_id,
             ':cat'     => $categoria_id,
             ':desc'    => $descricao,
             ':val'     => $valor,
-            ':data'    => $data,
-            ':obs'     => $observacao
+            ':data'    => $data
         ]);
 
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);

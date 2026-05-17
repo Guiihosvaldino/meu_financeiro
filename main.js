@@ -115,6 +115,7 @@ if(formGasto) {
             descricao: document.getElementById('edit_descricao').value,
             valor: document.getElementById('edit_valor').value,
             categoria_id: document.getElementById('edit_categoria').value
+            
         };;
         
         const response = await fetch('gastos.php', {

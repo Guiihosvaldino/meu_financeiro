@@ -152,3 +152,22 @@ if ($acao === 'resetar') {
     }
     exit;
 }
+// EDITAR DESPESA
+if ($acao === 'editar_gasto') {
+    $sql = "UPDATE gastos SET descricao = :descricao, valor = :valor, categoria = :categoria WHERE id = :id AND usuario_id = :usuario_id";
+    $stmt = $pdo->prepare($sql);
+    try {
+        $stmt->execute([
+            ':descricao' => $dados['descricao'],
+            ':valor'     => $dados['valor'],
+            ':categoria' => $dados['categoria'],
+            ':id'        => $dados['id'],
+            ':usuario_id'=> $_SESSION['usuario_id']
+        ]);
+        echo json_encode(["status" => "sucesso"]);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(["erro" => "Erro ao atualizar"]);
+    }
+    exit;
+}

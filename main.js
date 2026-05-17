@@ -106,26 +106,36 @@ function desenharGrafico(dados) {
 
 // Evento do Formulário de Cadastro
 const formGasto = document.getElementById('formGasto');
-if(formGasto) {
+if (formGasto) {
     formGasto.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Aqui pegamos APENAS os dados do formulário de cadastro novo!
         const dados = {
-            id: document.getElementById('edit_id').value,
-            data: document.getElementById('edit_data').value, // O PHP espera 'data'
-            descricao: document.getElementById('edit_descricao').value,
-            valor: document.getElementById('edit_valor').value,
-            categoria_id: document.getElementById('categoria_id').value
-            
-        };;
-        
-        const response = await fetch('gastos.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-        if (response.ok) {
-            formGasto.reset();
-            carregarGastos();
+            descricao: document.getElementById('descricao').value,
+            valor: document.getElementById('valor').value,
+            categoria_id: document.getElementById('categoria_id').value,
+            data: new Date().toISOString().split('T')[0] // Captura a data de hoje automaticamente
+        };
+
+        try {
+            const response = await fetch('gastos.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            const resultado = await response.json();
+
+            if (response.ok) {
+                formGasto.reset(); // Limpa os campos do formulário
+                carregarGastos();  // Recarrega a tabela e o gráfico automaticamente
+                alert("Gasto cadastrado com sucesso!");
+            } else {
+                alert("Erro ao cadastrar: " + (resultado.msg || "Erro interno"));
+            }
+        } catch (erro) {
+            console.error("Erro na requisição POST:", erro);
         }
     });
 }

@@ -81,8 +81,10 @@ elseif ($metodo === 'POST') {
 
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);
     } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(["status" => "erro", "msg" => $e->getMessage()]);
+        // Mudamos o código de 500 para 400 (Bad Request) temporariamente para o console ler o JSON completo
+        http_response_code(400); 
+        echo json_encode(["status" => "erro", "msg" => "Erro no Banco: " . $e->getMessage()]);
+        exit;
     }
 }
 

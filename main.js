@@ -114,7 +114,7 @@ if(formGasto) {
             data: document.getElementById('edit_data').value, // O PHP espera 'data'
             descricao: document.getElementById('edit_descricao').value,
             valor: document.getElementById('edit_valor').value,
-            categoria_id: document.getElementById('edit_categoria').value
+            categoria_id: document.getElementById('categoria_id').value
             
         };;
         
@@ -136,7 +136,7 @@ function prepararEdicao(gasto) {
     document.getElementById('edit_data').value = gasto.data_movimentacao;
     document.getElementById('edit_descricao').value = gasto.descricao;
     document.getElementById('edit_valor').value = gasto.valor;
-    document.getElementById('edit_categoria').value = gasto.categoria_id;
+    document.getElementById('edit_categoria_id').value = gasto.categoria_id;
 
     const modalEl = document.getElementById('modalEdicao');
     const modal = new bootstrap.Modal(modalEl);

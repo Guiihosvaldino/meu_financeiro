@@ -60,21 +60,23 @@ elseif ($metodo === 'POST') {
     $descricao = $dados['descricao'] ?? 'Sem descrição';
     $categoria_id = (int)($dados['categoria_id'] ?? 1);
     $data = $dados['data'] ?? date('Y-m-d');
+    
+    // Se o JS não mandar observacao, o PHP assume um texto vazio '' em vez de NULL
+    $observacao = $dados['observacao'] ?? ''; 
 
     try {
-        // 1. REMOVEMOS 'observacao' das colunas e ':obs' dos VALUES
-        $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo) 
-                VALUES (:user_id, :cat, :desc, :val, :data, 'despesa')";
+        // Mantemos a observação aqui para o banco de produção não reclamar
+        $sql = "INSERT INTO movimentacoes (usuario_id, categoria_id, descricao, valor, data_movimentacao, tipo, observacao) 
+                VALUES (:user_id, :cat, :desc, :val, :data, 'despesa', :obs)";
         
         $stmt = $pdo->prepare($sql);
-        
-        // 2. O execute envia apenas o que foi declarado no SQL acima
         $stmt->execute([
             ':user_id' => $user_id,
             ':cat'     => $categoria_id,
             ':desc'    => $descricao,
             ':val'     => $valor,
-            ':data'    => $data
+            ':data'    => $data,
+            ':obs'     => $observacao // Passando a string vazia configurada acima
         ]);
 
         echo json_encode(["status" => "sucesso", "msg" => "Gasto registrado!"]);

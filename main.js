@@ -141,12 +141,12 @@ if (formGasto) {
 }
 
 // Funções de Edição (MODAL)
-function prepararEdicao(gasto) {
-    document.getElementById('edit_id').value = gasto.id;
-    document.getElementById('edit_data').value = gasto.data_movimentacao;
-    document.getElementById('edit_descricao').value = gasto.descricao;
-    document.getElementById('edit_valor').value = gasto.valor;
-    document.getElementById('edit_categoria').value = gasto.categoria_id; // Ajustado para edit_categoria
+function prepararEdicao(gastos) {
+    document.getElementById('edit_id').value = gastos.id;
+    document.getElementById('edit_data').value = gastos.data_movimentacao;
+    document.getElementById('edit_descricao').value = gastos.descricao;
+    document.getElementById('edit_valor').value = gastos.valor;
+    document.getElementById('edit_categoria').value = gastos.categoria_id; // Ajustado para edit_categoria
 
     const modalEl = document.getElementById('modalEdicao');
     const modal = new bootstrap.Modal(modalEl);

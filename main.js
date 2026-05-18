@@ -146,7 +146,7 @@ function prepararEdicao(gasto) {
     document.getElementById('edit_data').value = gasto.data_movimentacao;
     document.getElementById('edit_descricao').value = gasto.descricao;
     document.getElementById('edit_valor').value = gasto.valor;
-    document.getElementById('edit_categoria_id').value = gasto.categoria_id;
+    document.getElementById('edit_categoria').value = gasto.categoria_id; // Ajustado para edit_categoria
 
     const modalEl = document.getElementById('modalEdicao');
     const modal = new bootstrap.Modal(modalEl);
@@ -155,29 +155,41 @@ function prepararEdicao(gasto) {
 
 // Evento para salvar a edição
 const formEdicao = document.getElementById('formEdicao');
-if(formEdicao) {
+if (formEdicao) {
     formEdicao.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Captura os dados exatamente como estão no HTML do Modal
         const dados = {
             id: document.getElementById('edit_id').value,
-            data: document.getElementById('edit_data').value,
+            data: document.getElementById('edit_data').value, 
             descricao: document.getElementById('edit_descricao').value,
             valor: document.getElementById('edit_valor').value,
-            categoria_id: document.getElementById('edit_categoria').value
+            categoria_id: document.getElementById('edit_categoria').value // Garanta que bate com o ID do HTML abaixo
         };
 
-        const response = await fetch('gastos.php', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
+        try {
+            const response = await fetch('gastos.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
 
-        if (response.ok) {
-            const modalEl = document.getElementById('modalEdicao');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if(modalInstance) modalInstance.hide();
-            carregarGastos();
-            alert("Atualizado com sucesso!");
+            const resultado = await response.json();
+
+            if (response.ok) {
+                // Fecha o modal do Bootstrap com segurança
+                const modalEl = document.getElementById('modalEdicao');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                
+                carregarGastos(); // Recarrega a tabela e o gráfico com os novos dados
+                alert("Atualizado com sucesso!");
+            } else {
+                alert("Erro ao atualizar: " + (resultado.erro || "Erro desconhecido"));
+            }
+        } catch (erro) {
+            console.error("Erro na requisição PUT:", erro);
         }
     });
 }

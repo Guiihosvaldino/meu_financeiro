@@ -112,10 +112,24 @@ elseif ($metodo === 'PUT') {
             ':id' => $id,
             ':user_id' => $user_id
         ]);
-        echo json_encode(["status" => "sucesso"]);
+        
+        // --- LOG DE DEBUG DA CLASSE ---
+        //rowCount() diz quantas linhas foram alteradas no banco
+        $linhasAlteradas = $stmt->rowCount(); 
+        
+        // Forçamos um código 400 apenas para ver a resposta na aba Network do F12
+        http_response_code(400); 
+        echo json_encode([
+            "debug" => "Recebido no PHP",
+            "dados_recebidos" => $dados,
+            "linhas_afetadas_no_banco" => $linhasAlteradas
+        ]);
+        exit;
+
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(["erro" => $e->getMessage()]);
+        exit;
     }
 }
 // --- DELETAR GASTO (DELETE) ---
